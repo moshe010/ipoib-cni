@@ -6,7 +6,7 @@ Allow user to create IPoIB child link and move it to the pod.
 
 ## Example configuration
 
-```
+```json
 {
 	"name": "mynet",
 	"type": "ipoib",
@@ -18,7 +18,7 @@ Allow user to create IPoIB child link and move it to the pod.
         "rangeEnd": "192.168.2.216",
         "routes": [{"dst": "0.0.0.0/0"}],
         "gateway": "192.168.2.1"
-    }
+        }
 }
 ```
 
