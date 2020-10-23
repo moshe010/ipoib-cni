@@ -23,7 +23,7 @@ LDFLAGS="-X main.version=$(VERSION) -X main.commit=$(COMMIT) -X main.date=$(DATE
 # Docker
 IMAGE_BUILDER?=@docker
 IMAGEDIR=$(BASE)/images
-DOCKERFILE?=$(CURDIR)/Dockerfile
+DOCKERFILE=$(CURDIR)/Dockerfile
 TAG?=mellanox/ipoib-cni
 IMAGE_BUILD_OPTS?=
 # Accept proxy settings for docker

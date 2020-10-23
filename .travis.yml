@@ -1,10 +1,14 @@
 language: go
 
+dist: bionic
+
 go:
   - 1.13.x
 
 env:
-  - IMAGE_NAME=mellanox/ipoib-cni
+  global:
+    - IMAGE_NAME=mellanox/ipoib-cni
+    - DOCKER_CLI_EXPERIMENTAL=enabled
 
 before_script:
   - go get github.com/mattn/goveralls
@@ -12,23 +16,30 @@ before_script:
 script:
   - make lint
   - make test-coverage
-  - goveralls -coverprofile=ipoib-cni.cover -service=travis-ci
+ # - goveralls -coverprofile=ipoib-cni.cover -service=travis-ci
   - make image
 
 before_deploy:
   - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASS"
+  - sudo rm -rf /var/lib/apt/lists/*
+  - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+  - lsb_release -cs
+  - sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) edge"
+  - sudo apt-get update
+  - sudo apt-get -y -o Dpkg::Options::="--force-confnew" install docker-ce
+  - docker run --rm --privileged multiarch/qemu-user-static:register --reset
 
 deploy:
   # Push image to Dockerhub on merge to master
   - provider: script
     skip_cleanup: true
-    script: bash scripts/deploy.sh $IMAGE_NAME latest $TRAVIS_CPU_ARCH
+    script: docker buildx create --use ; docker buildx build --push --platform linux/arm64/v8,linux/amd64 -t ${IMAGE_NAME}:latest .
     on:
-      branch: master
+      branch: fix-multi-arch
   # Push image to Dockerhub on tag
   - provider: script
     skip_cleanup: true
-    script: bash scripts/deploy.sh $IMAGE_NAME $TRAVIS_TAG $TRAVIS_CPU_ARCH
+    script: docker buildx build --push --platform linux/arm/v7,linux/arm64/v8,linux/386,linux/amd64 -t ${IMAGE_NAME}:${TRAVIS_TAG} .
     on:
       tags: true
       all_branches: true
